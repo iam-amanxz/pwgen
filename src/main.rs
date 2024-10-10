@@ -1,18 +1,59 @@
 use rand::prelude::SliceRandom;
 use rand::Rng;
-
 const MIN_LENGTH: usize = 8;
 const MAX_LENGTH: usize = 128;
 
+enum Mode {
+    Interactive,
+    Manual(Options),
+}
+
+fn interactive() -> Options {
+    let allow_symbols = inquire::Confirm::new("Allow symbols?")
+        .with_default(true)
+        .prompt()
+        .unwrap();
+
+    let allow_numbers = inquire::Confirm::new("Allow numbers?")
+        .with_default(true)
+        .prompt()
+        .unwrap();
+
+    let allow_uppercase = inquire::Confirm::new("Allow uppercase letters?")
+        .with_default(true)
+        .prompt()
+        .unwrap();
+
+    let allow_lowercase = inquire::Confirm::new("Allow lowercase letters?")
+        .with_default(true)
+        .prompt()
+        .unwrap();
+
+    let length = inquire::Text::new("Length?")
+        .with_default("8")
+        .prompt()
+        .unwrap()
+        .parse()
+        .unwrap();
+
+    Options {
+        length,
+        allow_symbols,
+        allow_numbers,
+        allow_uppercase,
+        allow_lowercase,
+    }
+}
+
 fn main() {
-    let g = Generator::new(Options {
-        length: 8,
-        allow_symbols: true,
-        allow_numbers: true,
-        allow_uppercase: true,
-        allow_lowercase: true,
-    })
-    .expect("Failed to create generator");
+    let mode = Mode::Interactive;
+
+    let options = match mode {
+        Mode::Interactive => interactive(),
+        Mode::Manual(op) => op,
+    };
+
+    let g = Generator::new(options).expect("Failed to create generator");
 
     let result = g.generate();
 
@@ -168,4 +209,3 @@ mod tests {
         assert_eq!(result.len(), 18);
     }
 }
-
